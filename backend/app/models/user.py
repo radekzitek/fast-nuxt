@@ -1,9 +1,29 @@
+"""
+User ORM Model.
+
+This module defines the SQLAlchemy ORM model for a 'User'.
+It inherits common fields from the `Base` class and defines user-specific attributes.
+"""
 from sqlalchemy import Column, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
-from app.db.base_class import Base # Assuming base_class.py is in app/db/
+from sqlalchemy.orm import Mapped, mapped_column # For SQLAlchemy 2.0 style type hints
+from app.db.base_class import Base
 
 class User(Base):
-    __tablename__ = "users" # Explicitly setting tablename, though Base would default to "user"
+    """
+    SQLAlchemy ORM model representing a user in the database.
+
+    Inherits `id`, `active`, `created_at`, and `updated_at` fields from `Base`.
+
+    Attributes:
+        __tablename__ (str): The name of the database table, explicitly set to "users".
+        username (Mapped[str]): The user's unique username. Indexed for fast lookups.
+        email (Mapped[str]): The user's unique email address. Indexed for fast lookups.
+        first_name (Mapped[str | None]): The user's first name (optional).
+        last_name (Mapped[str | None]): The user's last name (optional).
+        hashed_password (Mapped[str]): The user's password, stored in a hashed format.
+        note (Mapped[str | None]): An optional note or description for the user.
+    """
+    __tablename__ = "users"
 
     username: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
