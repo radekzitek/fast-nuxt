@@ -31,8 +31,8 @@ class UserInDBBase(UserBase):
     updated_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True # Pydantic V1
-        # from_attributes = True # Pydantic V2
+        # orm_mode = True # Pydantic V1
+        from_attributes = True # Pydantic V2
 
 
 # Properties to return to client
