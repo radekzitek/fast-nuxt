@@ -6,6 +6,7 @@ and defines startup and shutdown event handlers. It serves as the
 primary entry point for the ASGI server (e.g., Uvicorn).
 """
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 from app.api import api_router # Main API router
 from app.db.session import engine # SQLAlchemy engine
 from app.db.base_class import Base # SQLAlchemy declarative base for table creation
@@ -31,6 +32,25 @@ app = FastAPI(
 The main FastAPI application instance.
 Configured with a title, description, and version for the API documentation.
 """
+
+# Define allowed origins for CORS
+# In a production environment, you should restrict this to your actual frontend domain.
+# For development, allowing localhost with common ports is typical.
+origins = [
+    "http://localhost",
+    "http://localhost:3000", # Common Nuxt.js dev port
+    "http://localhost:8080", # Other common dev ports
+    "http://localhost:5173", # Common Vite dev port
+]
+
+# Add CORS middleware to the application
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # List of origins that are allowed to make requests
+    allow_credentials=True,  # Allow cookies to be included in requests
+    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 @app.on_event("startup")
 def on_startup():

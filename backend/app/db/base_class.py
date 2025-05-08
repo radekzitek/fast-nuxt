@@ -8,6 +8,8 @@ primary key, 'active' status, and 'created_at'/'updated_at' timestamps.
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy import Column, Integer, Boolean, DateTime
 from sqlalchemy.sql import func # Import func
+from sqlalchemy.orm import Mapped, mapped_column # Add Mapped and mapped_column
+from datetime import datetime # <--- Add this import
 
 @as_declarative()
 class Base:
@@ -34,14 +36,15 @@ class Base:
         """
         return cls.__name__.lower()
 
-    id: Column[Integer] = Column(Integer, primary_key=True, index=True)
+    # Update annotations to use Mapped[] and mapped_column
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     """Surrogate primary key for all tables, indexed for efficiency."""
 
-    active: Column[Boolean] = Column(Boolean, default=True, nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     """Boolean flag to indicate if the record is active. Defaults to True."""
 
-    created_at: Column[DateTime] = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     """Timestamp indicating when the record was created. Set by the database server."""
 
-    updated_at: Column[DateTime] = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
     """Timestamp indicating when the record was last updated. Updated by the database server on modification."""
