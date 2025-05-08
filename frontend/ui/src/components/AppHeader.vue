@@ -1,6 +1,7 @@
 <template>
   <v-app-bar app :color="isDark ? 'primary-darken-4' : 'primary'" :dark="isDark">
-    <v-toolbar-title>Fast-Nuxt User Admin</v-toolbar-title>
+    <v-icon class="ml-2">mdi-crystal-ball</v-icon>
+    <v-toolbar-title>AI Performance Hub</v-toolbar-title>
     <v-spacer />
     <v-btn icon @click="toggleTheme">
       <v-icon>{{ isDark ? 'mdi-white-balance-sunny' : 'mdi-moon-waning-crescent' }}</v-icon>
