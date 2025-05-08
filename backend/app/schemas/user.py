@@ -107,3 +107,16 @@ class UserInDB(UserInDBBase):
         hashed_password (str): The user's hashed password as stored in the database.
     """
     hashed_password: str
+
+
+class UserLogin(BaseModel):
+    """
+    Pydantic model for user login (authorization) requests.
+    """
+    username: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

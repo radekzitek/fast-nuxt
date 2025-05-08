@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas # Application-specific imports
 from app.db.session import get_db # Dependency to get a database session
+from app.core.security import verify_password, create_access_token
 
 router = APIRouter()
 """
@@ -167,3 +168,22 @@ def delete_user_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     deleted_user = crud.delete_user(db=db, user_id=user_id)
     return deleted_user
+
+@router.post("/login", response_model=schemas.Token)
+def login_user_endpoint(
+    *,
+    db: Session = Depends(get_db),
+    login_in: schemas.UserLogin,
+):
+    """
+    Authorize user by username and password.
+    Returns JWT token if authentication is successful.
+    """
+    user = crud.get_user_by_username(db, username=login_in.username)
+    if not user or not verify_password(login_in.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+        )
+    access_token = create_access_token({"sub": str(user.id), "username": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
