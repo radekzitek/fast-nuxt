@@ -7,17 +7,40 @@ the CRUD functions for database interactions.
 """
 from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas # Application-specific imports
 from app.db.session import get_db # Dependency to get a database session
-from app.core.security import verify_password, create_access_token
+from app.core.security import verify_password, create_access_token, SECRET_KEY, ALGORITHM
 
 router = APIRouter()
 """
 FastAPI router for user-related endpoints.
 All routes defined here will be prefixed, e.g., by `/api/v1/users`.
 """
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/token")
+
+# Utility to get current user from JWT token
+def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = crud.get_user(db, user_id=int(user_id))
+    if user is None:
+        raise credentials_exception
+    return user
 
 @router.post("/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
 def create_user_endpoint(
@@ -75,6 +98,10 @@ def read_users_endpoint(
     """
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
+
+@router.get("/me", response_model=schemas.User, dependencies=[Depends(oauth2_scheme)])
+def read_users_me(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return schemas.User.model_validate(current_user)
 
 @router.get("/{user_id}", response_model=schemas.User)
 def read_user_by_id_endpoint(
@@ -181,6 +208,20 @@ def login_user_endpoint(
     """
     user = crud.get_user_by_username(db, username=login_in.username)
     if not user or not verify_password(login_in.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+        )
+    access_token = create_access_token({"sub": str(user.id), "username": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/token", response_model=schemas.Token)
+def login_token(
+    db: Session = Depends(get_db),
+    form_data: OAuth2PasswordRequestForm = Depends(),
+):
+    user = crud.get_user_by_username(db, username=form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",

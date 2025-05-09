@@ -35,6 +35,7 @@
   import { ref } from 'vue'
   import axios from 'axios'
   import { useRouter } from 'vue-router'
+  import { useAuthStore } from '@/stores/auth'
 
   const username = ref('')
   const password = ref('')
@@ -42,14 +43,21 @@
   const showError = ref(false)
   const errorMessage = ref('')
   const router = useRouter()
+  const auth = useAuthStore()
 
-  const API_URL = 'http://localhost:8000/api/v1/users/login'
+  const API_URL = 'http://localhost:8000/api/v1/users/token'
 
   async function login () {
     loading.value = true
     try {
-      const res = await axios.post(API_URL, { username: username.value, password: password.value })
-      // Store token if needed: localStorage.setItem('token', res.data.access_token)
+      const params = new URLSearchParams()
+      params.append('username', username.value)
+      params.append('password', password.value)
+      const res = await axios.post(API_URL, params, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+      auth.setToken(res.data.access_token)
+      await auth.fetchUser()
       router.push('/aiph')
     } catch (err) {
       errorMessage.value = err?.response?.data?.detail || 'Login failed'
