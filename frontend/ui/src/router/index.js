@@ -19,12 +19,44 @@ const router = createRouter({
       component: () => import('@/pages/aiph.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/team',
+      component: () => import('@/pages/team.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/meetings',
+      component: () => import('@/pages/meetings.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/objectives',
+      component: () => import('@/pages/objectives.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/key-results',
+      component: () => import('@/pages/key-results.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/evaluations',
+      component: () => import('@/pages/evaluations.vue'),
+      meta: { requiresAuth: true },
+    },
   ]),
 })
 
-// After router is created, set meta.requiresAuth for /aiph
+// After router is created, set meta.requiresAuth for /aiph and related pages
 router.getRoutes().forEach(route => {
-  if (route.path === '/aiph') {
+  if ([
+    '/aiph',
+    '/team',
+    '/meetings',
+    '/objectives',
+    '/key-results',
+    '/evaluations',
+  ].includes(route.path)) {
     route.meta.requiresAuth = true
   }
 })
@@ -47,19 +79,19 @@ router.onError((err, to) => {
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
   // Always check for a valid token and user
-  console.log('Checking auth before route change')
-  console.log('Current token:', auth.token)
-  console.log('Current user:', auth.user)
-  console.log('Route meta requiresAuth:', to.meta.requiresAuth)
+  // console.log('Checking auth before route change')
+  // console.log('Current token:', auth.token)
+  // console.log('Current user:', auth.user)
+  // console.log('Route meta requiresAuth:', to.meta.requiresAuth)
   if (to.meta.requiresAuth) {
     // If no token, redirect immediately
-    console.log('Route requires auth, checking token and user')
+    // console.log('Route requires auth, checking token and user')
     if (!auth.token) {
-      console.log('No token found, redirecting to login')
+      // console.log('No token found, redirecting to login')
       return next({ path: '/' })
     }
     // If token exists but user is not loaded, fetch user and check again
-    console.log('Token found, checking user')
+    // console.log('Token found, checking user')
     if (!auth.user) {
       try {
         await auth.fetchUser()
@@ -73,7 +105,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   }
-  console.log('Auth check passed, proceeding to route')
+  // console.log('Auth check passed, proceeding to route')
   next()
 })
 

@@ -18,12 +18,12 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUser () {
     if (!token.value) return
     try {
-      console.log('Fetching user with token:', token.value)
+      // console.log('Fetching user with token:', token.value)
       const res = await axios.get('http://localhost:8000/api/v1/users/me', {
         headers: { Authorization: `Bearer ${token.value}` },
       })
       setUser(res.data)
-      console.log('User fetched:', res.data)
+      // console.log('User fetched:', res.data)
     } catch (e) {
       setUser(null)
       console.error('Failed to fetch user', e)

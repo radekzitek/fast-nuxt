@@ -21,6 +21,7 @@ class UserBase(BaseModel):
         last_name (Optional[str]): The user's last name (optional).
         note (Optional[str]): An optional note for the user.
         active (Optional[bool]): Whether the user account is active. Defaults to True.
+        team_member_id (Optional[int]): The user's team member ID (optional).
     """
     email: EmailStr
     username: str
@@ -28,6 +29,7 @@ class UserBase(BaseModel):
     last_name: Optional[str] = None
     note: Optional[str] = None
     active: Optional[bool] = True
+    team_member_id: Optional[int] = None
 
 
 # Properties to receive via API on creation

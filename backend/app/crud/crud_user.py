@@ -88,6 +88,7 @@ def create_user(db: Session, *, user_in: UserCreate) -> User:
         last_name=user_in.last_name,
         note=user_in.note,
         active=user_in.active if user_in.active is not None else True,
+        team_member_id=user_in.team_member_id,
     )
     db.add(db_user)
     db.commit()
