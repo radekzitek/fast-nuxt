@@ -12,53 +12,86 @@ from app.db.session import get_db
 
 router = APIRouter()
 
-@router.post("/", response_model=schemas.TeamMember, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=schemas.TeamMember, status_code=status.HTTP_201_CREATED, summary="Create a new team member", response_description="The created team member.")
 def create_team_member_endpoint(
     *,
     db: Session = Depends(get_db),
     member_in: schemas.TeamMemberCreate,
 ) -> Any:
+    """
+    Create a new team member.
+    
+    - **first_name**: First name of the team member
+    - **last_name**: Last name of the team member
+    - **email**: Email address (must be unique)
+    - **phone_number**: Phone number (optional)
+    - **position**: Position or role (optional)
+    - **notes**: Additional notes (optional)
+    - **supervisor_id**: ID of the supervisor (optional)
+    """
     member = crud.create_team_member(db=db, member_in=member_in)
     return member
 
-@router.get("/", response_model=List[schemas.TeamMember])
+@router.get("/", response_model=List[schemas.TeamMember], summary="List all team members", response_description="A list of team members.")
 def read_team_members_endpoint(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
+    """
+    Retrieve a list of all team members.
+    
+    - **skip**: Number of records to skip for pagination
+    - **limit**: Maximum number of records to return
+    """
     members = crud.get_team_members(db, skip=skip, limit=limit)
     return members
 
-@router.get("/{member_id}", response_model=schemas.TeamMember)
+@router.get("/{member_id}", response_model=schemas.TeamMember, summary="Get a team member by ID", response_description="The requested team member.")
 def read_team_member_by_id_endpoint(
     member_id: int,
     db: Session = Depends(get_db),
 ) -> Any:
+    """
+    Get a team member by their unique ID.
+    
+    - **member_id**: The ID of the team member to retrieve
+    """
     member = crud.get_team_member(db, member_id=member_id)
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team member not found")
     return member
 
-@router.put("/{member_id}", response_model=schemas.TeamMember)
+@router.put("/{member_id}", response_model=schemas.TeamMember, summary="Update a team member", response_description="The updated team member.")
 def update_team_member_endpoint(
     *,
     db: Session = Depends(get_db),
     member_id: int,
     member_in: schemas.TeamMemberUpdate,
 ) -> Any:
+    """
+    Update an existing team member by ID.
+    
+    - **member_id**: The ID of the team member to update
+    - **member_in**: The updated team member data
+    """
     member = crud.get_team_member(db, member_id=member_id)
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team member not found")
     updated_member = crud.update_team_member(db=db, db_member=member, member_in=member_in)
     return updated_member
 
-@router.delete("/{member_id}", response_model=schemas.TeamMember)
+@router.delete("/{member_id}", response_model=schemas.TeamMember, summary="Delete a team member", response_description="The deleted team member.")
 def delete_team_member_endpoint(
     *,
     db: Session = Depends(get_db),
     member_id: int,
 ) -> Any:
+    """
+    Delete a team member by ID.
+    
+    - **member_id**: The ID of the team member to delete
+    """
     member = crud.get_team_member(db, member_id=member_id)
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team member not found")

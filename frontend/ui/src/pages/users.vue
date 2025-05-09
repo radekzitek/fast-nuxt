@@ -30,6 +30,14 @@
           size="small"
           @click="openDeleteDialog(item)"
         />
+        <v-btn
+          v-if="!item.team_member_id || item.team_member_id === 0"
+          color="success"
+          icon="mdi-plus"
+          size="small"
+          :title="'Create and assign Team Member'"
+          @click="assignTeamMember(item)"
+        />
       </template>
     </v-data-table>
 
@@ -328,6 +336,29 @@
     detailUser.value = user;
     detailDialog.value = true;
     fetchDetailTeamMember(user.team_member_id);
+  }
+
+  async function assignTeamMember (user) {
+    // Create a new team member with user's first name, last name, email
+    const teamMemberPayload = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      phone_number: null,
+      position: null,
+      notes: null,
+      supervisor_id: null,
+    };
+    try {
+      const res = await axios.post('http://localhost:8000/api/v1/team-members', teamMemberPayload);
+      const newTeamMember = res.data;
+      // Update the user with the new team member id
+      await axios.put(`${API_URL}/${user.id}`, { team_member_id: newTeamMember.id });
+      await fetchUsers();
+      await fetchAllTeamMembers();
+    } catch {
+      alert('Failed to create and assign team member.');
+    }
   }
 
   onMounted(() => {

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 from app.api import api_router # Main API router
 from app.db.session import engine # SQLAlchemy engine
 from app.db.base_class import Base # SQLAlchemy declarative base for table creation
+from app.core.config import settings  # Import settings
 
 # This is optional: Create tables if they don't exist (for development)
 # For production, you should rely on Alembic migrations for schema management.
@@ -24,9 +25,29 @@ def create_db_and_tables():
     Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="FastAPI Nuxt Backend",
-    description="API for the Fast-Nuxt project. Provides user management and other features.",
-    version="0.1.0"
+    title="AIPH Backend API",
+    description="""
+    ## Fast-Nuxt API
+
+    This API provides endpoints for:
+    - User management (CRUD, authentication)
+    - Team member management (CRUD)
+    - JWT-based authentication
+
+    ### Authentication
+    - Obtain a JWT token via `/api/v1/users/token` (OAuth2 password flow)
+    - Use the token as a Bearer token in the `Authorization` header for protected endpoints
+
+    ### Main Endpoints
+    - `/api/v1/users/` - User CRUD
+    - `/api/v1/team-members/` - Team member CRUD
+
+    ### Notes
+    - All endpoints return JSON
+    - All endpoints are documented below
+    """,
+    version="1.0.0",
+    openapi_url=f"/api/v1/openapi.json"
 )
 """
 The main FastAPI application instance.

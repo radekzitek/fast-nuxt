@@ -199,6 +199,23 @@
   }
 
   async function deleteTeamMember () {
+    // Before deleting, check if any user is assigned to this team member
+    try {
+      // Fetch users with this team member id
+      const usersRes = await axios.get('http://localhost:8000/api/v1/users', {
+        params: { team_member_id: selectedTeamMember.value.id },
+      });
+      const users = usersRes.data;
+      // For each user, set their team_member_id to null
+      for (const user of users) {
+        if (user.team_member_id === selectedTeamMember.value.id) {
+          await axios.put(`http://localhost:8000/api/v1/users/${user.id}`, { team_member_id: null });
+        }
+      }
+    } catch {
+      // Optionally handle error
+    }
+    // Now delete the team member
     await axios.delete(`${API_URL}/${selectedTeamMember.value.id}`);
     deleteDialog.value = false;
     await fetchTeamMembers();
