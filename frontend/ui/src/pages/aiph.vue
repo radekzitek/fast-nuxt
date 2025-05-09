@@ -21,6 +21,10 @@
         <v-icon size="36">mdi-clipboard-check-outline</v-icon>
         <span>Evaluations</span>
       </router-link>
+      <router-link class="icon-link" to="/users">
+        <v-icon size="36">mdi-account-outline</v-icon>
+        <span>Users</span>
+      </router-link>
     </div>
     <div class="aiph-content">
       <!-- Main content for AIPH page goes here -->

@@ -80,6 +80,14 @@
               :type="showPassword ? 'text' : 'password'"
               @click:append="showPassword = !showPassword"
             />
+            <v-select
+              v-model="editedUser.team_member_id"
+              clearable
+              :item-title="tm => `${tm.first_name} ${tm.last_name}${tm.position ? ' (' + tm.position + ')' : ''}`"
+              item-value="id"
+              :items="allTeamMembers"
+              label="Team Member"
+            />
             <v-textarea
               v-model="editedUser.note"
               label="Note"
@@ -145,6 +153,13 @@
               <v-list-item-subtitle>{{ detailUser?.note }}</v-list-item-subtitle>
             </v-list-item>
             <v-list-item>
+              <v-list-item-title>Team Member ID</v-list-item-title>
+              <v-list-item-subtitle>
+                {{ detailUser?.team_member_id }}
+                <span v-if="detailTeamMember"> ({{ detailTeamMember.first_name }} {{ detailTeamMember.last_name }}<span v-if="detailTeamMember.position">, {{ detailTeamMember.position }}</span>)</span>
+              </v-list-item-subtitle>
+            </v-list-item>
+            <v-list-item>
               <v-list-item-title>Created At</v-list-item-title>
               <v-list-item-subtitle>{{ detailUser?.created_at }}</v-list-item-subtitle>
             </v-list-item>
@@ -160,6 +175,15 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-row class="mt-8">
+      <v-col cols="12">
+        <router-link class="back-icon-link" to="/aiph">
+          <v-icon size="32">mdi-arrow-left-circle-outline</v-icon>
+          <span>Back to Hub</span>
+        </router-link>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -183,11 +207,14 @@
     password: '',
     note: '',
     active: true,
+    team_member_id: null,
   });
   const selectedUser = ref(null);
   const detailUser = ref(null);
   const showPassword = ref(false);
   const formRef = ref(null);
+  const detailTeamMember = ref(null);
+  const allTeamMembers = ref([]);
 
   const headers = [
     { title: 'ID', value: 'id' },
@@ -215,6 +242,15 @@
     }
   }
 
+  async function fetchAllTeamMembers () {
+    try {
+      const res = await axios.get('http://localhost:8000/api/v1/team-members');
+      allTeamMembers.value = res.data;
+    } catch {
+      allTeamMembers.value = [];
+    }
+  }
+
   function openCreateDialog () {
     dialogMode.value = 'create';
     editedUser.value = {
@@ -226,6 +262,7 @@
       password: '',
       note: '',
       active: true,
+      team_member_id: null,
     };
     dialog.value = true;
   }
@@ -241,6 +278,7 @@
       password: '',
       note: user.note || '',
       active: user.active,
+      team_member_id: user.team_member_id || null,
     };
     dialog.value = true;
   }
@@ -273,12 +311,29 @@
     await fetchUsers();
   }
 
+  async function fetchDetailTeamMember (teamMemberId) {
+    if (!teamMemberId || teamMemberId === 0) {
+      detailTeamMember.value = null;
+      return;
+    }
+    try {
+      const res = await axios.get(`http://localhost:8000/api/v1/team-members/${teamMemberId}`);
+      detailTeamMember.value = res.data;
+    } catch {
+      detailTeamMember.value = null;
+    }
+  }
+
   function openDetailDialog (user) {
     detailUser.value = user;
     detailDialog.value = true;
+    fetchDetailTeamMember(user.team_member_id);
   }
 
-  onMounted(fetchUsers);
+  onMounted(() => {
+    fetchUsers();
+    fetchAllTeamMembers();
+  });
 </script>
 
 <style scoped>
