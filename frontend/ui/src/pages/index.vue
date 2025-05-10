@@ -33,9 +33,10 @@
 
 <script setup>
   import { ref } from 'vue'
-  import axios from 'axios'
+
   import { useRouter } from 'vue-router'
   import { useAuthStore } from '@/stores/auth'
+  import api from '@/api'
 
   const username = ref('')
   const password = ref('')
@@ -45,15 +46,13 @@
   const router = useRouter()
   const auth = useAuthStore()
 
-  const API_URL = 'http://localhost:8000/api/v1/users/token'
-
   async function login () {
     loading.value = true
     try {
       const params = new URLSearchParams()
       params.append('username', username.value)
       params.append('password', password.value)
-      const res = await axios.post(API_URL, params, {
+      const res = await api.post('/users/token', params, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       })
       auth.setToken(res.data.access_token)

@@ -197,7 +197,7 @@
 
 <script setup>
   import { onMounted, ref } from 'vue';
-  import axios from 'axios';
+  import api from '@/api';
 
   const users = ref([]);
   const loading = ref(false);
@@ -238,12 +238,12 @@
     email: v => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid',
   };
 
-  const API_URL = 'http://localhost:8000/api/v1/users';
+  const API_URL = '/users';
 
   async function fetchUsers () {
     loading.value = true;
     try {
-      const res = await axios.get(API_URL);
+      const res = await api.get(API_URL);
       users.value = res.data;
     } finally {
       loading.value = false;
@@ -252,7 +252,7 @@
 
   async function fetchAllTeamMembers () {
     try {
-      const res = await axios.get('http://localhost:8000/api/v1/team-members');
+      const res = await api.get('/team-members');
       allTeamMembers.value = res.data;
     } catch {
       allTeamMembers.value = [];
@@ -298,11 +298,11 @@
   async function saveUser () {
     if (formRef.value && !(await formRef.value.validate())) return;
     if (dialogMode.value === 'create') {
-      await axios.post(API_URL, editedUser.value);
+      await api.post(API_URL, editedUser.value);
     } else {
       const payload = { ...editedUser.value };
       if (!payload.password) delete payload.password;
-      await axios.put(`${API_URL}/${editedUser.value.id}`, payload);
+      await api.put(`${API_URL}/${editedUser.value.id}`, payload);
     }
     dialog.value = false;
     await fetchUsers();
@@ -314,7 +314,7 @@
   }
 
   async function deleteUser () {
-    await axios.delete(`${API_URL}/${selectedUser.value.id}`);
+    await api.delete(`${API_URL}/${selectedUser.value.id}`);
     deleteDialog.value = false;
     await fetchUsers();
   }
@@ -325,7 +325,7 @@
       return;
     }
     try {
-      const res = await axios.get(`http://localhost:8000/api/v1/team-members/${teamMemberId}`);
+      const res = await api.get(`/team-members/${teamMemberId}`);
       detailTeamMember.value = res.data;
     } catch {
       detailTeamMember.value = null;
@@ -350,10 +350,10 @@
       supervisor_id: null,
     };
     try {
-      const res = await axios.post('http://localhost:8000/api/v1/team-members', teamMemberPayload);
+      const res = await api.post('/team-members', teamMemberPayload);
       const newTeamMember = res.data;
       // Update the user with the new team member id
-      await axios.put(`${API_URL}/${user.id}`, { team_member_id: newTeamMember.id });
+      await api.put(`${API_URL}/${user.id}`, { team_member_id: newTeamMember.id });
       await fetchUsers();
       await fetchAllTeamMembers();
     } catch {

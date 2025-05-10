@@ -27,13 +27,40 @@
       </router-link>
     </div>
     <div class="aiph-content">
-      <!-- Main content for AIPH page goes here -->
+      <div v-if="loading" class="loading">Loading dashboard...</div>
+      <template v-else>
+        <TeamTree v-if="teamMembers.length && userTeamMemberId" :members="teamMembers" :user-team-member-id="userTeamMemberId" />
+        <div v-else class="no-team">No team data available.</div>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup>
+  import { onMounted, ref } from 'vue';
+  import TeamTree from '@/components/TeamTree.vue';
+  import api from '@/api';
 
+  const teamMembers = ref([]);
+  const userTeamMemberId = ref(null); // This should be set to the logged-in user's team_member id
+  const loading = ref(true);
+
+  onMounted(async () => {
+    try {
+      // Fetch all team members
+      const teamRes = await api.get('/team-members');
+      teamMembers.value = teamRes.data;
+      // Fetch the logged-in user's team_member id (token is included automatically)
+      const userRes = await api.get('/users/me');
+      userTeamMemberId.value = userRes.data.team_member_id;
+      console.log('User Team Member ID:', userTeamMemberId.value);
+    } catch (e) {
+      // Handle error
+      console.error(e);
+    } finally {
+      loading.value = false;
+    }
+  });
 </script>
 
 <style scoped>
