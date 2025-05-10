@@ -24,7 +24,6 @@ def create_objective(db: Session, *, obj_in: ObjectiveCreate) -> Objective:
         start_date=obj_in.start_date,
         target_completion_date=obj_in.target_completion_date,
         actual_completion_date=obj_in.actual_completion_date,
-        creation_date=obj_in.creation_date,
         last_updated_date=obj_in.last_updated_date,
         alignment_statement=obj_in.alignment_statement,
         tags=','.join(obj_in.tags) if obj_in.tags else None,

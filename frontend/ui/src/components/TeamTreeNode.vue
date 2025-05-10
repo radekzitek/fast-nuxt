@@ -6,7 +6,22 @@
       </v-avatar>
       <span class="name">{{ member.first_name }} {{ member.last_name }}</span>
       <span v-if="member.position" class="position">({{ member.position }})</span>
+      <div v-if="objectivesLoading" class="objectives-loading">
+        <v-icon color="primary" size="32">mdi-flag-variant</v-icon>
+        <span>Loading objectives...</span>
+      </div>
+      <div v-if="objectivesError" class="objectives-error">
+        <v-icon color="error" size="32">mdi-alert-circle</v-icon>
+        <span>Failed to load objectives: {{ objectivesError }}</span>
+      </div>
+      <div v-if="objectives.length" class="objectives-list">
+        <div v-for="obj in objectives" :key="obj.id" class="objective-item">
+          <v-icon :color="getObjectiveColor(obj.status)" size="32">mdi-flag-variant</v-icon>
+          <span class="objective-title">{{ obj.title }}</span>
+        </div>
+      </div>
     </div>
+
     <div v-if="member.subordinates && member.subordinates.length" class="subordinates">
       <div v-for="sub in member.subordinates" :key="sub.id" class="subordinate-line">
         <TeamTreeNode :level="level + 1" :member="sub" />
@@ -16,11 +31,47 @@
 </template>
 
 <script setup>
-  import { defineProps } from 'vue';
-  defineProps({
+  import { ref, watch } from 'vue'
+  import api from '@/api'
+
+  const props = defineProps({
     member: { type: Object, required: true },
     level: { type: Number, required: true },
   });
+
+  const objectives = ref([])
+  const objectivesLoading = ref(false)
+  const objectivesError = ref(null)
+
+  async function fetchObjectivesForMember (memberId) {
+    objectivesLoading.value = true
+    objectivesError.value = null
+    try {
+      const res = await api.get(`/team-members/${memberId}/objectives`)
+      objectives.value = res.data
+    } catch (e) {
+      objectivesError.value = e?.response?.data?.detail || e.message
+    } finally {
+      objectivesLoading.value = false
+    }
+  }
+
+  function getObjectiveColor (status) {
+    switch (status) {
+      case 'ON_TRACK': return 'lime';
+      case 'NOT_STARTED': return 'blue';
+      case 'AT_RISK': return 'orange';
+      case 'DELAYED': return 'red';
+      case 'ACHIEVED': return 'green';
+      case 'ON_HOLD': return 'yellow';
+      case 'CANCELLED': return 'brown';
+      default: return 'grey';
+    }
+  }
+
+  watch(() => props.member.id, id => {
+    if (id) fetchObjectivesForMember(id)
+  }, { immediate: true })
 </script>
 
 <style scoped>
@@ -61,5 +112,23 @@
 .root > .node-content {
   background: #e3f2fd;
   border: 2px solid #1976d2;
+}
+.objectives-list {
+  margin-left: 2.5rem;
+  margin-top: 0.2rem;
+}
+.objective-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9em;
+}
+.objectives-loading, .objectives-error {
+  margin-left: 2.5rem;
+  font-size: 0.95em;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 </style>

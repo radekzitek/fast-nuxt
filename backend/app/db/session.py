@@ -10,10 +10,11 @@ from app.core.config import settings
 
 # For SQLite, connect_args is needed to enable foreign key support by default
 # and to allow the same connection to be used across different threads in FastAPI.
-engine_args = {"connect_args": {"check_same_thread": False}} if "sqlite" in settings.SQLALCHEMY_DATABASE_URL else {}
+db_url = settings.database_url
+engine_args = {"connect_args": {"check_same_thread": False}} if "sqlite" in db_url else {}
 
 engine = create_engine(
-    settings.SQLALCHEMY_DATABASE_URL,
+    db_url,
     **engine_args
 )
 """

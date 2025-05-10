@@ -33,6 +33,9 @@
         <div v-else class="no-team">No team data available.</div>
       </template>
     </div>
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="4000">
+      {{ snackbarText }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -44,8 +47,12 @@
   const teamMembers = ref([]);
   const userTeamMemberId = ref(null); // This should be set to the logged-in user's team_member id
   const loading = ref(true);
+  const snackbar = ref(false);
+  const snackbarColor = ref('');
+  const snackbarText = ref('');
 
   onMounted(async () => {
+    loading.value = true;
     try {
       // Fetch all team members
       const teamRes = await api.get('/team-members');
@@ -53,9 +60,11 @@
       // Fetch the logged-in user's team_member id (token is included automatically)
       const userRes = await api.get('/users/me');
       userTeamMemberId.value = userRes.data.team_member_id;
-      console.log('User Team Member ID:', userTeamMemberId.value);
+      // console.log('User Team Member ID:', userTeamMemberId.value);
     } catch (e) {
-      // Handle error
+      snackbarText.value = 'Failed to load dashboard data: ' + (e?.response?.data?.detail || e.message);
+      snackbarColor.value = 'error';
+      snackbar.value = true;
       console.error(e);
     } finally {
       loading.value = false;

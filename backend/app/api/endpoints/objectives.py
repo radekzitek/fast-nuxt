@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.db.session import get_db
 from app.schemas.progress_update import ProgressUpdate, ProgressUpdateCreate, ProgressUpdateUpdate
+from app.models import objective as objective_models
 
 router = APIRouter()
 
@@ -27,6 +28,16 @@ def read_objectives_endpoint(
 ) -> Any:
     objs = crud.crud_objective.get_objectives(db, skip=skip, limit=limit)
     return objs
+
+@router.get("/enums", tags=["objectives"])
+def get_objective_enums():
+    return {
+        "priority": [e.value for e in objective_models.ObjectivePriority],
+        "status": [e.value for e in objective_models.ObjectiveStatus],
+        "level": [e.value for e in objective_models.ObjectiveLevel],
+        "confidentiality": [e.value for e in objective_models.ObjectiveConfidentiality],
+        "strategic_perspective": [e.value for e in objective_models.ObjectiveStrategicPerspective],
+    }
 
 @router.get("/{objective_id}", response_model=schemas.Objective)
 def read_objective_by_id_endpoint(

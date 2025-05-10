@@ -110,6 +110,10 @@
       </v-card>
     </v-dialog>
 
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="4000">
+      {{ snackbarText }}
+    </v-snackbar>
+
     <v-row class="mt-8">
       <v-col cols="12">
         <router-link class="back-icon-link" to="/aiph">
@@ -148,6 +152,10 @@
   const formRef = ref(null);
   const detailSupervisor = ref(null);
 
+  const snackbar = ref(false)
+  const snackbarColor = ref('')
+  const snackbarText = ref('')
+
   const headers = [
     { title: 'ID', value: 'id' },
     { title: 'First Name', value: 'first_name' },
@@ -177,6 +185,10 @@
         }
       }));
       teamMemberUsers.value = Object.fromEntries(userChecks.map(u => [u.id, u.user]));
+    } catch (e) {
+      snackbarText.value = 'Failed to load team members: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
     } finally {
       loading.value = false;
     }
@@ -201,8 +213,13 @@
     try {
       await api.post('/users', payload);
       await fetchTeamMembers();
+      snackbarText.value = 'User created for team member.'
+      snackbarColor.value = 'success'
+      snackbar.value = true
     } catch (e) {
-      alert('Failed to create user: ' + (e.response?.data?.detail || e.message));
+      snackbarText.value = 'Failed to create user: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
     }
   }
 
@@ -233,13 +250,24 @@
 
   async function saveTeamMember () {
     if (formRef.value && !(await formRef.value.validate())) return;
-    if (dialogMode.value === 'create') {
-      await api.post('/team-members', editedTeamMember.value);
-    } else {
-      await api.put(`/team-members/${editedTeamMember.value.id}`, editedTeamMember.value);
+    try {
+      if (dialogMode.value === 'create') {
+        await api.post('/team-members', editedTeamMember.value);
+        snackbarText.value = 'Team member created successfully.'
+        snackbarColor.value = 'success'
+      } else {
+        await api.put(`/team-members/${editedTeamMember.value.id}`, editedTeamMember.value);
+        snackbarText.value = 'Team member updated successfully.'
+        snackbarColor.value = 'success'
+      }
+      snackbar.value = true
+      dialog.value = false;
+      await fetchTeamMembers();
+    } catch (e) {
+      snackbarText.value = 'Failed to save team member: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
     }
-    dialog.value = false;
-    await fetchTeamMembers();
   }
 
   function openDeleteDialog (member) {
@@ -248,26 +276,34 @@
   }
 
   async function deleteTeamMember () {
-    // Before deleting, check if any user is assigned to this team member
     try {
-      // Fetch users with this team member id
+      // Before deleting, check if any user is assigned to this team member
       const usersRes = await api.get('/users', {
         params: { team_member_id: selectedTeamMember.value.id },
       });
       const users = usersRes.data;
-      // For each user, set their team_member_id to null
       for (const user of users) {
         if (user.team_member_id === selectedTeamMember.value.id) {
           await api.put(`/users/${user.id}`, { team_member_id: null });
         }
       }
-    } catch {
-      // Optionally handle error
+    } catch (e) {
+      snackbarText.value = 'Failed to unassign users before deleting team member: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
     }
-    // Now delete the team member
-    await api.delete(`/team-members/${selectedTeamMember.value.id}`);
-    deleteDialog.value = false;
-    await fetchTeamMembers();
+    try {
+      await api.delete(`/team-members/${selectedTeamMember.value.id}`);
+      snackbarText.value = 'Team member deleted.'
+      snackbarColor.value = 'success'
+      snackbar.value = true
+      deleteDialog.value = false;
+      await fetchTeamMembers();
+    } catch (e) {
+      snackbarText.value = 'Failed to delete team member: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
+    }
   }
 
   async function fetchDetailSupervisor (supervisorId) {
@@ -278,7 +314,10 @@
     try {
       const res = await api.get(`/team-members/${supervisorId}`);
       detailSupervisor.value = res.data;
-    } catch {
+    } catch (e) {
+      snackbarText.value = 'Failed to load supervisor details: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
       detailSupervisor.value = null;
     }
   }

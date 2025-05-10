@@ -50,7 +50,7 @@ class Objective(Base):
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    level: Mapped[ObjectiveLevel] = mapped_column(Enum(ObjectiveLevel), nullable=False)
+    level: Mapped[ObjectiveLevel] = mapped_column(Enum(ObjectiveLevel), nullable=True)
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("team_members.id"), nullable=False)
     parent_objective_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("objectives.id"), nullable=True)
     status: Mapped[ObjectiveStatus] = mapped_column(Enum(ObjectiveStatus), nullable=False)
@@ -58,8 +58,8 @@ class Objective(Base):
     start_date: Mapped[Date] = mapped_column(Date, nullable=False)
     target_completion_date: Mapped[Date] = mapped_column(Date, nullable=False)
     actual_completion_date: Mapped[Date | None] = mapped_column(Date, nullable=True)
-    creation_date: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
-    last_updated_date: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    # creation_date: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    last_updated_date: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     alignment_statement: Mapped[str | None] = mapped_column(Text, nullable=True)
     tags: Mapped[str | None] = mapped_column(Text, nullable=True)  # Store as comma-separated string
     confidentiality: Mapped[ObjectiveConfidentiality | None] = mapped_column(Enum(ObjectiveConfidentiality), nullable=True)

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.db.session import get_db
-from app.models import TeamMember
+from app.models import TeamMember, Objective
 
 router = APIRouter()
 
@@ -102,6 +102,11 @@ def read_team_members_by_supervisor_id(
     """
     members = db.query(TeamMember).filter(TeamMember.supervisor_id == supervisor_id).all()
     return members
+
+
+@router.get("/{team_member_id}/objectives", response_model=List[schemas.Objective])
+def get_objectives_for_team_member(team_member_id: int, db: Session = Depends(get_db)):
+    return db.query(Objective).filter(Objective.owner_id == team_member_id).all()
 
 
 @router.put(

@@ -192,6 +192,10 @@
         </router-link>
       </v-col>
     </v-row>
+
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="4000">
+      {{ snackbarText }}
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -223,6 +227,9 @@
   const formRef = ref(null);
   const detailTeamMember = ref(null);
   const allTeamMembers = ref([]);
+  const snackbar = ref(false)
+  const snackbarColor = ref('')
+  const snackbarText = ref('')
 
   const headers = [
     { title: 'ID', value: 'id' },
@@ -245,6 +252,10 @@
     try {
       const res = await api.get(API_URL);
       users.value = res.data;
+    } catch (e) {
+      snackbarText.value = 'Failed to load users: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
     } finally {
       loading.value = false;
     }
@@ -254,7 +265,10 @@
     try {
       const res = await api.get('/team-members');
       allTeamMembers.value = res.data;
-    } catch {
+    } catch (e) {
+      snackbarText.value = 'Failed to load team members: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
       allTeamMembers.value = [];
     }
   }
@@ -297,15 +311,26 @@
 
   async function saveUser () {
     if (formRef.value && !(await formRef.value.validate())) return;
-    if (dialogMode.value === 'create') {
-      await api.post(API_URL, editedUser.value);
-    } else {
-      const payload = { ...editedUser.value };
-      if (!payload.password) delete payload.password;
-      await api.put(`${API_URL}/${editedUser.value.id}`, payload);
+    try {
+      if (dialogMode.value === 'create') {
+        await api.post(API_URL, editedUser.value);
+        snackbarText.value = 'User created successfully.'
+        snackbarColor.value = 'success'
+      } else {
+        const payload = { ...editedUser.value };
+        if (!payload.password) delete payload.password;
+        await api.put(`${API_URL}/${editedUser.value.id}`, payload);
+        snackbarText.value = 'User updated successfully.'
+        snackbarColor.value = 'success'
+      }
+      snackbar.value = true
+      dialog.value = false;
+      await fetchUsers();
+    } catch (e) {
+      snackbarText.value = 'Failed to save user: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
     }
-    dialog.value = false;
-    await fetchUsers();
   }
 
   function openDeleteDialog (user) {
@@ -314,9 +339,18 @@
   }
 
   async function deleteUser () {
-    await api.delete(`${API_URL}/${selectedUser.value.id}`);
-    deleteDialog.value = false;
-    await fetchUsers();
+    try {
+      await api.delete(`${API_URL}/${selectedUser.value.id}`);
+      snackbarText.value = 'User deleted.'
+      snackbarColor.value = 'success'
+      snackbar.value = true
+      deleteDialog.value = false;
+      await fetchUsers();
+    } catch (e) {
+      snackbarText.value = 'Failed to delete user: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
+    }
   }
 
   async function fetchDetailTeamMember (teamMemberId) {
@@ -327,7 +361,10 @@
     try {
       const res = await api.get(`/team-members/${teamMemberId}`);
       detailTeamMember.value = res.data;
-    } catch {
+    } catch (e) {
+      snackbarText.value = 'Failed to load team member details: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
       detailTeamMember.value = null;
     }
   }
@@ -356,8 +393,13 @@
       await api.put(`${API_URL}/${user.id}`, { team_member_id: newTeamMember.id });
       await fetchUsers();
       await fetchAllTeamMembers();
-    } catch {
-      alert('Failed to create and assign team member.');
+      snackbarText.value = 'Team member created and assigned successfully.'
+      snackbarColor.value = 'success'
+      snackbar.value = true
+    } catch (e) {
+      snackbarText.value = 'Failed to create and assign team member: ' + (e?.response?.data?.detail || e.message)
+      snackbarColor.value = 'error'
+      snackbar.value = true
     }
   }
 

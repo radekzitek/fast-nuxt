@@ -65,7 +65,6 @@ class ObjectiveBase(BaseModel):
     last_review_date: Optional[date] = None
 
 class ObjectiveCreate(ObjectiveBase):
-    creation_date: datetime
     last_updated_date: datetime
 
 class ObjectiveUpdate(ObjectiveBase):
@@ -73,7 +72,6 @@ class ObjectiveUpdate(ObjectiveBase):
 
 class ObjectiveInDBBase(ObjectiveBase):
     id: int
-    creation_date: datetime
     last_updated_date: datetime
 
     class Config:
