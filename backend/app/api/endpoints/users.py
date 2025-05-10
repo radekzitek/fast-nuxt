@@ -6,7 +6,7 @@ It uses the Pydantic schemas for request and response validation and
 the CRUD functions for database interactions.
 """
 from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
