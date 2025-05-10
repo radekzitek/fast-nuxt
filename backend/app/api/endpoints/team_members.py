@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.db.session import get_db
+from app.models import TeamMember
 
 router = APIRouter()
 
@@ -83,6 +84,24 @@ def read_team_member_by_id_endpoint(
             status_code=status.HTTP_404_NOT_FOUND, detail="Team member not found"
         )
     return member
+
+
+@router.get(
+    "/by-supervisor/{supervisor_id}",
+    response_model=List[schemas.TeamMember],
+    summary="List team members by supervisor ID",
+    response_description="A list of team members with the given supervisor ID."
+)
+def read_team_members_by_supervisor_id(
+    supervisor_id: int,
+    db: Session = Depends(get_db),
+) -> Any:
+    """
+    Retrieve all team members who have the given supervisor_id.
+    - **supervisor_id**: The ID of the supervisor
+    """
+    members = db.query(TeamMember).filter(TeamMember.supervisor_id == supervisor_id).all()
+    return members
 
 
 @router.put(

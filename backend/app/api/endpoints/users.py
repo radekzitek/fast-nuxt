@@ -6,14 +6,15 @@ It uses the Pydantic schemas for request and response validation and
 the CRUD functions for database interactions.
 """
 from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app import crud, models, schemas  # Application-specific imports
 from app.db.session import get_db  # Dependency to get a database session
-from app.core.security import verify_password, create_access_token, SECRET_KEY, ALGORITHM
+from app.core.security import verify_password, create_access_token, SECRET_KEY, ALGORITHM, get_password_hash
 
 router = APIRouter()
 """
@@ -239,3 +240,38 @@ def login_token(
         )
     access_token = create_access_token({"sub": str(user.id), "username": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/by-team-member/{team_member_id}", response_model=List[schemas.User])
+def get_users_by_team_member_id(
+    team_member_id: int,
+    db: Session = Depends(get_db),
+) -> Any:
+    """
+    Get all users assigned to a specific team member by team_member_id.
+    """
+    users = db.query(models.User).filter(models.User.team_member_id == team_member_id).all()
+    return users
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/change-password")
+def change_password(
+    req: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+) -> Any:
+    """
+    Change the password for the current user.
+    """
+    if not verify_password(req.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+    current_user.hashed_password = get_password_hash(req.new_password)
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return {"msg": "Password changed successfully"}
