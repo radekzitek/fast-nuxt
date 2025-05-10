@@ -11,8 +11,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from app import crud, models, schemas # Application-specific imports
-from app.db.session import get_db # Dependency to get a database session
+from app import crud, models, schemas  # Application-specific imports
+from app.db.session import get_db  # Dependency to get a database session
 from app.core.security import verify_password, create_access_token, SECRET_KEY, ALGORITHM
 
 router = APIRouter()
@@ -24,6 +24,8 @@ All routes defined here will be prefixed, e.g., by `/api/v1/users`.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/token")
 
 # Utility to get current user from JWT token
+
+
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,12 +37,13 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+    except JWTError as exc:
+        raise credentials_exception from exc
     user = crud.get_user(db, user_id=int(user_id))
     if user is None:
         raise credentials_exception
     return user
+
 
 @router.post("/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
 def create_user_endpoint(
@@ -79,6 +82,7 @@ def create_user_endpoint(
     user = crud.create_user(db=db, user_in=user_in)
     return user
 
+
 @router.get("/", response_model=List[schemas.User])
 def read_users_endpoint(
     db: Session = Depends(get_db),
@@ -99,9 +103,11 @@ def read_users_endpoint(
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
+
 @router.get("/me", response_model=schemas.User, dependencies=[Depends(oauth2_scheme)])
-def read_users_me(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def read_users_me(_db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return schemas.User.model_validate(current_user)
+
 
 @router.get("/{user_id}", response_model=schemas.User)
 def read_user_by_id_endpoint(
@@ -125,6 +131,7 @@ def read_user_by_id_endpoint(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
+
 
 @router.put("/{user_id}", response_model=schemas.User)
 def update_user_endpoint(
@@ -161,7 +168,8 @@ def update_user_endpoint(
     if user_in.email and user_in.email != user.email:
         existing_user = crud.get_user_by_email(db, email=user_in.email)
         if existing_user and existing_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered by another user.")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Email already registered by another user.")
     # Check for username conflict if username is being changed
     if user_in.username and user_in.username != user.username:
         existing_user = crud.get_user_by_username(db, username=user_in.username)
@@ -170,6 +178,7 @@ def update_user_endpoint(
 
     user = crud.update_user(db=db, db_user=user, user_in=user_in)
     return user
+
 
 @router.delete("/{user_id}", response_model=schemas.User)
 def delete_user_endpoint(
@@ -196,6 +205,7 @@ def delete_user_endpoint(
     deleted_user = crud.delete_user(db=db, user_id=user_id)
     return deleted_user
 
+
 @router.post("/login", response_model=schemas.Token)
 def login_user_endpoint(
     *,
@@ -214,6 +224,7 @@ def login_user_endpoint(
         )
     access_token = create_access_token({"sub": str(user.id), "username": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.post("/token", response_model=schemas.Token)
 def login_token(

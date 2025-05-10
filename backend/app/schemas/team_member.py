@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
+
 class TeamMemberBase(BaseModel):
     first_name: str
     last_name: str
@@ -11,11 +12,14 @@ class TeamMemberBase(BaseModel):
     notes: Optional[str] = None
     supervisor_id: Optional[int] = None
 
+
 class TeamMemberCreate(TeamMemberBase):
     pass
 
+
 class TeamMemberUpdate(TeamMemberBase):
     pass
+
 
 class TeamMemberInDBBase(TeamMemberBase):
     id: int
@@ -25,8 +29,10 @@ class TeamMemberInDBBase(TeamMemberBase):
     class Config:
         from_attributes = True
 
+
 class TeamMember(TeamMemberInDBBase):
     pass
+
 
 class TeamMemberInDB(TeamMemberInDBBase):
     pass

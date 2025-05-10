@@ -10,6 +10,8 @@ from typing import Optional
 from datetime import datetime
 
 # Shared properties
+
+
 class UserBase(BaseModel):
     """
     Base Pydantic model for user properties shared across different operations.
@@ -56,8 +58,8 @@ class UserUpdate(UserBase):
         username (Optional[str]): A new username, if being updated.
     """
     password: Optional[str] = None
-    email: Optional[EmailStr] = None # Allow email update
-    username: Optional[str] = None # Allow username update
+    email: Optional[EmailStr] = None  # Allow email update
+    username: Optional[str] = None  # Allow username update
 
 
 # Properties shared by models stored in DB
@@ -85,7 +87,7 @@ class UserInDBBase(UserBase):
                                     (Equivalent to `orm_mode = True` in Pydantic V1).
         """
         # orm_mode = True # Pydantic V1
-        from_attributes = True # Pydantic V2
+        from_attributes = True  # Pydantic V2
 
 
 # Properties to return to client
@@ -95,7 +97,7 @@ class User(UserInDBBase):
     This is typically what the client will receive. It inherits all fields from `UserInDBBase`.
     Excludes sensitive information like `hashed_password`.
     """
-    pass
+    # pass
 
 
 # Properties stored in DB

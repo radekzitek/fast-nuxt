@@ -4,9 +4,10 @@ User ORM Model.
 This module defines the SQLAlchemy ORM model for a 'User'.
 It inherits common fields from the `Base` class and defines user-specific attributes.
 """
-from sqlalchemy import Column, String, Text, Integer, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column # For SQLAlchemy 2.0 style type hints
+from sqlalchemy import String, Text, Integer, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column  # For SQLAlchemy 2.0 style type hints
 from app.db.base_class import Base
+
 
 class User(Base):
     """

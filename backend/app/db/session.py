@@ -29,6 +29,8 @@ Sessions are configured to not autocommit or autoflush, and are bound to the eng
 """
 
 # Dependency to get DB session
+
+
 def get_db():
     """
     FastAPI dependency to get a database session.

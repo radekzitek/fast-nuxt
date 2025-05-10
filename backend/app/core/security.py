@@ -21,6 +21,7 @@ SECRET_KEY = getattr(settings, "SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verifies a plain text password against a stored hashed password.
@@ -34,6 +35,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password: str) -> str:
     """
     Hashes a plain text password.
@@ -45,6 +47,7 @@ def get_password_hash(password: str) -> str:
         The hashed version of the password.
     """
     return pwd_context.hash(password)
+
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()

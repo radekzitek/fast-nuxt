@@ -7,6 +7,7 @@ from sqlalchemy import String, Text, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base_class import Base
 
+
 class TeamMember(Base):
     __tablename__ = "team_members"
 

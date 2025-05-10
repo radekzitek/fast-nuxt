@@ -5,15 +5,20 @@ This module initializes the FastAPI application, includes API routers,
 and defines startup and shutdown event handlers. It serves as the
 primary entry point for the ASGI server (e.g., Uvicorn).
 """
+
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
-from app.api import api_router # Main API router
-from app.db.session import engine # SQLAlchemy engine
-from app.db.base_class import Base # SQLAlchemy declarative base for table creation
-from app.core.config import settings  # Import settings
+from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
+from app.api import api_router  # Main API router
+from app.db.session import engine  # SQLAlchemy engine
+from app.db.base_class import Base  # SQLAlchemy declarative base for table creation
+from sqlalchemy.orm import DeclarativeMeta
+
+Base: DeclarativeMeta
 
 # This is optional: Create tables if they don't exist (for development)
 # For production, you should rely on Alembic migrations for schema management.
+
+
 def create_db_and_tables():
     """
     Creates all database tables defined by SQLAlchemy models.
@@ -23,6 +28,7 @@ def create_db_and_tables():
     should be used for managing database schema changes.
     """
     Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title="AIPH Backend API",
@@ -47,7 +53,7 @@ app = FastAPI(
     - All endpoints are documented below
     """,
     version="1.0.0",
-    openapi_url=f"/api/v1/openapi.json"
+    openapi_url="/api/v1/openapi.json",
 )
 """
 The main FastAPI application instance.
@@ -59,9 +65,9 @@ Configured with a title, description, and version for the API documentation.
 # For development, allowing localhost with common ports is typical.
 origins = [
     "http://localhost",
-    "http://localhost:3000", # Common Nuxt.js dev port
-    "http://localhost:8080", # Other common dev ports
-    "http://localhost:5173", # Common Vite dev port
+    "http://localhost:3000",  # Common Nuxt.js dev port
+    "http://localhost:8080",  # Other common dev ports
+    "http://localhost:5173",  # Common Vite dev port
 ]
 
 # Add CORS middleware to the application
@@ -72,6 +78,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Allow all headers
 )
+
 
 @app.on_event("startup")
 def on_startup():
@@ -88,6 +95,7 @@ def on_startup():
     print("Application startup complete.")
     # You could also initialize DB connection pools or other resources here
 
+
 @app.on_event("shutdown")
 def on_shutdown():
     """
@@ -100,8 +108,10 @@ def on_shutdown():
     print("Application shutdown.")
     # Clean up resources, e.g., close DB connection pools
 
+
 # Include the main API router with a version prefix
 app.include_router(api_router, prefix="/api/v1")
+
 
 @app.get("/")
 async def root():
@@ -114,6 +124,7 @@ async def root():
         dict: A dictionary with a welcome message.
     """
     return {"message": "Welcome to the FastAPI Nuxt Backend!"}
+
 
 # If you want to run this directly using `python app/main.py` (though uvicorn is preferred for development and production)
 # if __name__ == "__main__":
